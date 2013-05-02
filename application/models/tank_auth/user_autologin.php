@@ -13,6 +13,9 @@ class User_Autologin extends CI_Model
 {
 	private $table_name			= 'user_autologin';
 	private $users_table_name	= 'users';
+    private $group_table_name	= 'rbac_group';	// user groups
+	private $scope_table_name	= 'rbac_scope';	// user scope
+
 
 	function __construct()
 	{
@@ -33,10 +36,15 @@ class User_Autologin extends CI_Model
 	 */
 	function get($user_id, $key)
 	{
-		$this->db->select($this->users_table_name.'.id');
-		$this->db->select($this->users_table_name.'.username');
-		$this->db->from($this->users_table_name);
-		$this->db->join($this->table_name, $this->table_name.'.user_id = '.$this->users_table_name.'.id');
+		$this->db->select('U.id');
+		$this->db->select('U.username');
+		$this->db->select('U.managing_id');
+		$this->db->select('U.user_group_id');
+        $this->db->select('UG.item_ids as usergroup, US.scope as scope');
+		$this->db->from($this->users_table_name.' AS U');
+		$this->db->join($this->group_table_name.' AS UG', 'UG.id=U.user_group_id');
+		$this->db->join($this->scope_table_name.' AS US', 'US.id=UG.scope_id');		
+		$this->db->join($this->table_name, $this->table_name.'.user_id = U.id');
 		$this->db->where($this->table_name.'.user_id', $user_id);
 		$this->db->where($this->table_name.'.key_id', $key);
 		$query = $this->db->get();

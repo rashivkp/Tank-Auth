@@ -29,6 +29,7 @@ class Tank_auth
 		$this->ci->load->library('session');
 		$this->ci->load->database();
 		$this->ci->load->model('tank_auth/users');
+		$this->ci->load->library('itschool_rbac');
 
 		// Try to autologin
 		$this->autologin();
@@ -96,6 +97,10 @@ class Tank_auth
 		$this->ci->session->set_userdata(array(
 			'user_id'   => $user->id,
 			'username'  => $user->username,
+			'permissions' => json_decode($user->usergroup), //json object
+            'usergroup_id' => $user->user_group_id, //json object
+            'userscope' => $user->scope,
+            'managing' => $user->managing_id,
 			'status'    => ($user->activated == 1) ? STATUS_ACTIVATED : STATUS_NOT_ACTIVATED,
 		));
 
@@ -107,6 +112,9 @@ class Tank_auth
 		}
 
 		// success
+		//seting scope depend sessions
+        $this->ci->itschool_rbac->set_scope_session();
+        
 		if ($remember)
 		{
 			$this->create_autologin($user->id);
@@ -132,7 +140,9 @@ class Tank_auth
 		$this->delete_autologin();
 
 		// See http://codeigniter.com/forums/viewreply/662369/ as the reason for the next line
-		$this->ci->session->unset_userdata(array('user_id' => '', 'username' => '', 'status' => ''));
+		$this->ci->session->unset_userdata(array('user_id' => '', 'username' => '', 'status' => '', 'managing' => '', 'usergroup_id' => '', 'userscope' => '', 'permissions' => ''));
+        //unseting scope depend sessions
+        $this->ci->itschool_rbac->unset_scope_session();
 	}
 
 	/**
@@ -219,6 +229,61 @@ class Tank_auth
 
 		return $data;
 	}
+	
+	/**
+     * Create new user on the site and return some data about it:
+     * user_id, username, password, email, new_email_key (if any).
+     *
+     * @author Mohamed Rashid C <http://twitter.com/rashivkp>
+     * @param	string
+     * @param	string
+     * @param	string
+     * @param	bool
+     * @param	integer
+     * @param	integer
+     * @return	array
+     */
+    function rbac_create_user($username, $email, $password, $email_activation, $usergroup, $managing = 0)
+    {
+        if ((strlen($username) > 0) AND !$this->ci->users->is_username_available($username)) {
+            $this->error = array('username' => 'auth_username_in_use');
+            return NULL;
+        }
+
+        if (!$this->ci->users->is_email_available($email)) {
+            $this->error = array('email' => 'auth_email_in_use');
+            return NULL;
+        }
+
+        // Hash password using phpass
+        $hasher = new PasswordHash(
+                $this->ci->config->item('phpass_hash_strength', 'tank_auth'), $this->ci->config->item('phpass_hash_portable', 'tank_auth'));
+        $hashed_password = $hasher->HashPassword($password);
+
+        $data = array(
+            'username' => $username,
+            'password' => $hashed_password,
+            'email' => $email,
+            'last_ip' => $this->ci->input->ip_address(),
+            'managing_id' => $managing,
+            'user_group_id' => $usergroup,
+        );
+
+        if ($email_activation) {
+            $data['new_email_key'] = md5(rand() . microtime());
+        }
+
+        $res = $this->ci->users->create_user($data, !$email_activation);
+        if (is_null($res)) {
+            return NULL;
+        }
+
+        $data['user_id'] = $res['user_id'];
+        $data['password'] = $password;
+        unset($data['last_ip']);
+
+        return $data;
+    }
 
 	/**
 	 * Check if username available for registering.
@@ -435,6 +500,7 @@ class Tank_auth
 
 		// Replace old password with new one
 		$this->ci->users->change_password($user_id, $hashed_password);
+		$this->ci->itschool_rbac->set_reset_off($user_id);
 		return TRUE;
 	}
 
@@ -639,7 +705,14 @@ class Tank_auth
 				'user_id'  => $user->id,
 				'username' => $user->username,
 				'status'   => STATUS_ACTIVATED,
+				'permissions' => json_decode($user->usergroup), //json object
+				'usergroup_id' => $user->user_group_id,
+				'userscope' => $user->scope,
+				'managing' => $user->managing_id,
 		));
+		
+		//seting scope depend sessions
+        $this->ci->itschool_rbac->set_scope_session();
 
 		// Renew users cookie to prevent it from expiring
 		set_cookie(array(

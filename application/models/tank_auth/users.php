@@ -12,8 +12,10 @@
  */
 class Users extends CI_Model
 {
-	private $table_name					= 'users';			// user accounts
+	private $table_name					= 'users';	// user accounts
 	private $profile_table_name	= 'user_profiles';	// user profiles
+	private $group_table_name	= 'rbac_group';	// user groups
+	private $scope_table_name	= 'rbac_scope';	// user scope
 
 	function __construct()
 	{
@@ -26,25 +28,31 @@ class Users extends CI_Model
 
 	/**
 	 * Get user record by Id
-	 *
+	 *	modified by	Mohamed Rashid C (https://twitter.com/rashivkp)
+	 * 
 	 * @param	int
 	 * @param	bool
 	 * @return	object
 	 */
 	function get_user_by_id($user_id, $activated)
 	{
-		$this->db->where('id', $user_id);
+		$this->db->where('U.id', $user_id);
 		$this->db->where('activated', $activated ? 1 : 0);
-
-		$query = $this->db->get($this->table_name);
-		if ($query->num_rows() == 1)
-			return $query->row();
-		return NULL;
+		
+		$this->db->select('U.*,UG.item_ids as usergroup, US.scope as scope');
+		$this->db->from($this->table_name.' AS U');
+		$this->db->join($this->group_table_name.' AS UG', 'UG.id=U.user_group_id');
+		$this->db->join($this->scope_table_name.' AS US', 'US.id=UG.scope_id');		
+        $query = $this->db->get();	
+		
+		if ($query->num_rows() == 1) return $query->row();
+		return NULL;		
 	}
 
 	/**
 	 * Get user record by login (username or email)
-	 *
+	 *	modified by	Mohamed Rashid C (https://twitter.com/rashivkp)
+	 * 
 	 * @param	string
 	 * @return	object
 	 */
@@ -52,8 +60,13 @@ class Users extends CI_Model
 	{
 		$this->db->where('LOWER(username)=', strtolower($login));
 		$this->db->or_where('LOWER(email)=', strtolower($login));
-
-		$query = $this->db->get($this->table_name);
+		
+		$this->db->select('U.*,UG.item_ids as usergroup, US.scope as scope');
+		$this->db->from($this->table_name.' AS U');
+		$this->db->join($this->group_table_name.' AS UG', 'UG.id=U.user_group_id');
+		$this->db->join($this->scope_table_name.' AS US', 'US.id=UG.scope_id');		
+        $query = $this->db->get();
+		
 		if ($query->num_rows() == 1)
 			return $query->row();
 		return NULL;
@@ -61,15 +74,21 @@ class Users extends CI_Model
 
 	/**
 	 * Get user record by username
-	 *
+	 *	modified by	Mohamed Rashid C (https://twitter.com/rashivkp)
+	 * 
 	 * @param	string
 	 * @return	object
 	 */
 	function get_user_by_username($username)
 	{
 		$this->db->where('LOWER(username)=', strtolower($username));
-
-		$query = $this->db->get($this->table_name);
+		
+        $this->db->select('U.*,UG.item_ids as usergroup, US.scope as scope');
+		$this->db->from($this->table_name.' AS U');
+		$this->db->join($this->group_table_name.' AS UG', 'UG.id=U.user_group_id');
+		$this->db->join($this->scope_table_name.' AS US', 'US.id=UG.scope_id');		
+        
+		$query = $this->db->get();
 		if ($query->num_rows() == 1)
 			return $query->row();
 		return NULL;
@@ -77,7 +96,8 @@ class Users extends CI_Model
 
 	/**
 	 * Get user record by email
-	 *
+	 * modified by	Mohamed Rashid C (https://twitter.com/rashivkp)
+	 * 
 	 * @param	string
 	 * @return	object
 	 */
@@ -85,7 +105,12 @@ class Users extends CI_Model
 	{
 		$this->db->where('LOWER(email)=', strtolower($email));
 
-		$query = $this->db->get($this->table_name);
+		$this->db->select('U.*,UG.item_ids as usergroup, US.scope as scope');
+		$this->db->from($this->table_name.' AS U');
+		$this->db->join($this->group_table_name.' AS UG', 'UG.id=U.user_group_id');
+		$this->db->join($this->scope_table_name.' AS US', 'US.id=UG.scope_id');		
+        $query = $this->db->get();
+		
 		if ($query->num_rows() == 1)
 			return $query->row();
 		return NULL;

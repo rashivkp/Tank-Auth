@@ -18,23 +18,51 @@ $confirm_new_password = array(
 	'size' 	=> 30,
 );
 ?>
-<?php echo form_open($this->uri->uri_string()); ?>
-<table>
-	<tr>
-		<td><?php echo form_label(lang('auth_form_old_password'), $old_password['id']); ?></td>
-		<td><?php echo form_password($old_password); ?></td>
-		<td style="color: red;"><?php echo form_error($old_password['name']); ?><?php echo isset($errors[$old_password['name']])?$errors[$old_password['name']]:''; ?></td>
-	</tr>
-	<tr>
-		<td><?php echo form_label(lang('auth_form_new_password'), $new_password['id']); ?></td>
-		<td><?php echo form_password($new_password); ?></td>
-		<td style="color: red;"><?php echo form_error($new_password['name']); ?><?php echo isset($errors[$new_password['name']])?$errors[$new_password['name']]:''; ?></td>
-	</tr>
-	<tr>
-		<td><?php echo form_label(lang('auth_form_new_password_confirm'), $confirm_new_password['id']); ?></td>
-		<td><?php echo form_password($confirm_new_password); ?></td>
-		<td style="color: red;"><?php echo form_error($confirm_new_password['name']); ?><?php echo isset($errors[$confirm_new_password['name']])?$errors[$confirm_new_password['name']]:''; ?></td>
-	</tr>
-</table>
-<?php echo form_submit('change', lang('auth_form_change_password_submit')); ?>
-<?php echo form_close(); ?>
+  <form class="form-horizontal" method="post">
+    <fieldset>
+      <div id="legend" class="">
+        <legend class="">Change Password</legend>
+      </div>
+    <div class="control-group">
+
+          <!-- Text input-->
+          <label class="control-label">Current Password</label>
+          <div class="controls">
+            <?php echo form_password($old_password); ?>
+            <p class="help-block"><?php echo form_error($old_password['name']); ?><?php echo isset($errors[$old_password['name']])?error_message($errors[$old_password['name']]):''; ?></p>
+          </div>
+        </div>
+
+    <div class="control-group">
+
+          <!-- Text input-->
+          <label class="control-label" for="input01">New Password</label>
+          <div class="controls">
+            <?php echo form_password($new_password); ?>
+            <p class="help-block"><?php echo form_error($new_password['name']); ?><?php echo isset($errors[$new_password['name']])?error_message($errors[$new_password['name']]):''; ?></p>
+          </div>
+        </div>
+
+    <div class="control-group">
+
+          <!-- Text input-->
+          <label class="control-label" for="input01">Verify Password</label>
+          <div class="controls">
+            <?php echo form_password($confirm_new_password); ?>
+            <p class="help-block"><?php echo form_error($confirm_new_password['name']); ?><?php echo isset($errors[$confirm_new_password['name']])?error_message($errors[$confirm_new_password['name']]):''; ?></p>
+          </div>
+        </div>
+
+    
+
+    <div class="control-group">
+          <label class="control-label"></label>
+
+          <!-- Button -->
+          <div class="controls">
+            <button class="btn btn-primary">Save Changes</button>
+          </div>
+        </div>
+
+    </fieldset>
+  </form>

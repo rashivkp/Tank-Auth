@@ -38,7 +38,7 @@ class Auth extends CI_Controller
 		if ($this->tank_auth->is_logged_in())
 		{
 			// already logged in
-			redirect('');
+			redirect('welcome');
 		}
 		elseif ($this->tank_auth->is_logged_in(FALSE))
 		{
@@ -54,6 +54,7 @@ class Auth extends CI_Controller
 		$this->form_validation->set_rules('login', 'lang:auth_form_login', 'trim|required|xss_clean');
 		$this->form_validation->set_rules('password', 'lang:auth_form_password', 'trim|required|xss_clean');
 		$this->form_validation->set_rules('remember', 'lang:auth_form_remember_me', 'integer');
+		$this->form_validation->set_error_delimiters('<div class="text-error"> <i class="icon-warning-sign"></i> <strong>', '</strong></div>');
 
 		// Get login for counting attempts to login
 		if ($this->config->item('login_count_attempts', 'tank_auth') AND
@@ -128,7 +129,9 @@ class Auth extends CI_Controller
 				$data['captcha_html'] = $this->_create_captcha();
 			}
 		}
-		$this->load->view('auth/login_form', $data);
+		//$this->template->set_master_template('template.php');
+        $this->template->write_view('content', 'auth/login_form', $data);
+        $this->template->render();
 	}
 
 	/**
@@ -140,7 +143,7 @@ class Auth extends CI_Controller
 	{
 		$this->tank_auth->logout();
 
-		$this->_show_message($this->lang->line('auth_message_logged_out'));
+		redirect('/auth/login/');
 	}
 
 	/**
@@ -371,7 +374,8 @@ class Auth extends CI_Controller
 				$data['errors'][$k] = $this->lang->line($v);
 			}
 		}
-		$this->load->view('auth/forgot_password_form', $data);
+		$this->template->write_view('content','auth/forgot_password_form', $data);
+        $this->template->render();
 	}
 
 	/**
@@ -388,6 +392,7 @@ class Auth extends CI_Controller
 
 		$this->form_validation->set_rules('new_password', 'lang:auth_form_new_password', 'trim|required|xss_clean|min_length['.$this->config->item('password_min_length', 'tank_auth').']|max_length['.$this->config->item('password_max_length', 'tank_auth').']|alpha_dash');
 		$this->form_validation->set_rules('confirm_new_password', 'lang:auth_form_new_password_confirm', 'trim|required|xss_clean|matches[new_password]');
+        $this->form_validation->set_error_delimiters('<div class="text-error"> <i class="icon-warning-sign"></i> <strong> ', '</strong></div>');
 
 		$data['errors'] = array();
 
@@ -422,7 +427,8 @@ class Auth extends CI_Controller
 				$this->_show_message($this->lang->line('auth_message_new_password_failed'));
 			}
 		}
-		$this->load->view('auth/reset_password_form', $data);
+		$this->template->write_view('content','auth/reset_password_form', $data);
+        $this->template->render();
 	}
 
 	/**
@@ -443,6 +449,7 @@ class Auth extends CI_Controller
 		$this->form_validation->set_rules('confirm_new_password', 'lang:auth_form_new_password_confirm', 'trim|required|xss_clean|matches[new_password]');
 
 		$data['errors'] = array();
+		$this->form_validation->set_error_delimiters('<div class="text-error"> <i class="icon-warning-sign"></i> <strong> ', '</strong></div>');
 
 		if ($this->form_validation->run())
 		{
@@ -451,7 +458,8 @@ class Auth extends CI_Controller
 					$this->form_validation->set_value('new_password')))
 			{
 				// password changed
-				$this->_show_message($this->lang->line('auth_message_password_changed'));
+				set_message($this->lang->line('auth_message_password_changed'),'alert-success');
+                redirect('welcome');
 			}
 
 			// password change failed
@@ -461,7 +469,9 @@ class Auth extends CI_Controller
 				$data['errors'][$k] = $this->lang->line($v);
 			}
 		}
-		$this->load->view('auth/change_password_form', $data);
+		$this->template->write_view('menu', 'menu');
+        $this->template->write_view('content','auth/change_password_form', $data);
+        $this->template->render();
 	}
 
 	/**
@@ -699,6 +709,15 @@ class Auth extends CI_Controller
 		}
 		return TRUE;
 	}
+	
+	/**
+     * permission denieded page
+     */
+    function permission()
+    {
+        echo "Permission denieded";
+        //$this->_show_message("Permission denieded")
+    }
 
 }
 
