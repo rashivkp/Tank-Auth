@@ -56,7 +56,7 @@
                     <?php
                     foreach ($taskgroups as $taskgroup) {
                          $id=$taskgroup->id;
-                        if( ! is_array($permissions->$id))
+                        if( ! is_array(@$permissions->$id))
                         echo "<option value=$taskgroup->id>$taskgroup->item</option>";
                      
                     }
