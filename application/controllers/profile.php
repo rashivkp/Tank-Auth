@@ -5,11 +5,8 @@ if (!defined('BASEPATH'))
 
 /**
  * Welcome Controller
- *
- * @package		VHSE Transfer controller
- * @author Mohamed Rashid C (https://twitter.com/rashivkp)
  */
-class Welcome extends CI_Controller
+class Profile extends CI_Controller
 {
 
     /**
@@ -39,10 +36,6 @@ class Welcome extends CI_Controller
         if($this->m_profile->is_reset($this->tank_auth->get_user_id()))
             redirect('welcome/complete_registration');
         $data['user'] = $this->m_profile->get_profile($this->tank_auth->get_user_id());
-        $data['usergroup'] = $this->itschool_rbac->get_usergroup();
-        if($this->session->userdata('userscope') == 'application'){
-             $data['appdetails'] =    $this->General_Model->get_data('tbl_application','is_confirmed,is_principal_verified,app_rejected,is_staff_verified,accepted_with_priority,staff_rank,is_alloted','pen_number = "'.$this->session->userdata('username').'"');
-        }
         $this->template->write_view('content', $this->fview . 'profile', $data);
         $this->template->render();
     }
