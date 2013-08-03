@@ -36,6 +36,7 @@ class Profile extends CI_Controller
         if($this->m_profile->is_reset($this->tank_auth->get_user_id()))
             redirect('welcome/complete_registration');
         $data['user'] = $this->m_profile->get_profile($this->tank_auth->get_user_id());
+        $data['usergroup'] = $this->itschool_rbac->get_usergroup();
         $this->template->write_view('content', $this->fview . 'profile', $data);
         $this->template->render();
     }
